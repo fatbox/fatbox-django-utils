@@ -42,6 +42,7 @@ use for the context.
 .. code-block:: python
 
     @render_to('myapp/template.html')
+    def myview(request):
         context = {
             'var1': var1,
             'var2': var2
