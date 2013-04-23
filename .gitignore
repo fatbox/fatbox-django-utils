@@ -1,0 +1,5 @@
+# ignore compiled python
+*.pyc
+
+# ignore vim swap files
+.*.sw*
