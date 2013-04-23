@@ -3,7 +3,10 @@
 from setuptools import setup
 
 setup(name='fatbox-django-utils',
-      packages=['fatbox_utils'],
+      packages=[
+          'fatbox_utils',
+          'fatbox_utils.templatetags'
+      ],
       include_package_data=True,
       version="1.0",
       description='A collection of Django utilities, built by FatBox',
