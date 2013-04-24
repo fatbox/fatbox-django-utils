@@ -10,6 +10,9 @@ Install using pip::
 
     pip install fatbox-django-utils
 
+If you're going to use the Template Tags then you also need to add
+``fatbox_utils`` to your ``INSTALLED_APPS`` setting.
+
 These utilities require Django 1.3+. They may work with earlier versions but
 haven't been tested.
 
@@ -72,6 +75,7 @@ to it. For example here is what is run in the doc tests:
 
 .. code-block:: python
 
+    >>> from fatbox_utils.humanize import humanize_time
     >>> humanize_time(173, "hours")
     u'1 week, 5 hours'
     >>> humanize_time(17313, "seconds")
@@ -212,6 +216,14 @@ queries to 2.
 
     Event.objects.filter(...).prefetch_related('descriptions')
 
+Admin Integration
+`````````````````
+
+Once you have your models setup with ``translatable_property`` setup then you
+can simply use normal `Django Inlines`_ without having to worry about complex
+admin site setups.
+
+.. _Django Inlines: https://docs.djangoproject.com/en/dev/ref/contrib/admin/#inlinemodeladmin-objects
 
 Template Tags
 =============
