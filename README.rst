@@ -219,9 +219,9 @@ queries to 2.
 Admin Integration
 `````````````````
 
-Once you have your models setup with ``translatable_property`` setup then you
-can simply use normal `Django Inlines`_ without having to worry about complex
-admin site setups.
+Once you have your models setup with ``translatable_property`` then you can
+simply use normal `Django Inlines`_ without having to worry about complex admin
+site configuration.
 
 .. _Django Inlines: https://docs.djangoproject.com/en/dev/ref/contrib/admin/#inlinemodeladmin-objects
 
