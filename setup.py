@@ -8,7 +8,7 @@ setup(name='fatbox-django-utils',
           'fatbox_utils.templatetags'
       ],
       include_package_data=True,
-      version="1.0",
+      version="1.1",
       description='A collection of Django utilities, built by FatBox',
       long_description=open('README.rst').read(),
       author='Evan Borgstrom',
