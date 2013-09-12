@@ -160,32 +160,34 @@ Consider the following example ``models.py`` file:
 .. code-block:: python
 
     from django.db import models
-    from fatbox_utils.i18n import translatable_property
+    from fatbox_utils.i18n import translatable_property, TranslatableModel
 
     class Event(models.Model):
         start = models.DateTimeField()
         end = models.DateTimeField()
 
-        title = translatable_property('title', 'descriptions')
-        details = translatable_property('details', 'descriptions')
+        title = translatable_property('title', 'translations')
+        details = translatable_property('details', 'translations')
 
-    class EventDescription(models.Model):
+    class EventTranslation(TranslatableModel):
         event = models.ForeignKey(
             Event,
-            related_name='descriptions'
-        )
-        language = models.CharField(
-            max_length=2,
-            help_text="The ISO two character language code (en, fr, es, pt, etc)"
+            related_name='translations'
         )
         title = models.CharField(
             max_length=32
         )
         details = models.TextField()
 
-What this does is add two models ``Event`` and ``EventDescription`` where the
-``EventDescription`` model has a foreign key to ``Event`` and sets up a related
-manager named ``descriptions``.
+What this does is add two models ``Event`` and ``EventTranslation`` where the
+``EventTranslation`` model has a foreign key to ``Event`` and sets up a related
+manager named ``translations``.
+
+The ``EventTranslation`` model extends from ``TranslatableModel`` so that it will
+have the required ``language`` field setup. The ``language`` field is a CharField
+with ``max_length=2, choices=settings.LANGUAGES`` set for options. If you require
+different handling for your language selection you can simply extend from Django's
+base ``models.Model`` and define your own ``language`` field.
 
 On the ``Event`` model we define two properties using the ``translatable_property``
 class. When defining these properties the first argument is the field on the
@@ -193,7 +195,7 @@ related model and the second argument is the name of the manager that we can use
 to lookup the related model that corresponds to the current language.
 
 When you access one of the ``translatable_property`` properties on your model
-it will try to fetch the related object from the ``descriptions`` manager where
+it will try to fetch the related object from the ``translations`` manager where
 the related object has a field named ``language`` that matches the current
 language, as defined by the ``get_language`` function from the
 ``django.utils.translation`` package. If it can't find a related object with a
@@ -209,12 +211,12 @@ burden on your database due to the number of SELECT lookups it needs to do when
 fetching all of the related ``EventDescription`` objects.
 
 To combat this you can use Django's ``prefetch_related`` queryset function to
-fetch all of the related descriptions in one fell swoop, reducing the number of
+fetch all of the related translations in one fell swoop, reducing the number of
 queries to 2.
 
 .. code-block:: python
 
-    Event.objects.filter(...).prefetch_related('descriptions')
+    Event.objects.filter(...).prefetch_related('translations')
 
 Admin Integration
 `````````````````

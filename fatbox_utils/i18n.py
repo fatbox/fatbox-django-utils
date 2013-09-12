@@ -1,8 +1,24 @@
+from django.utils.translation import ugettext_lazy as _
 from django.utils import translation
 from django.conf import settings
+from django.db import models
 
 class TranslatableException(Exception):
     pass
+
+class TranslatableModel(models.Model):
+    """
+    An abstract base model that adds the needed language field with its
+    choices set to the active languages in the settings file
+    """
+    language = models.CharField(
+        max_length=2,
+        choices=settings.LANGUAGES,
+        help_text=_("The language for this translation")
+    )
+
+    class Meta:
+        abstract = True
 
 class translatable_property(object):
     """
