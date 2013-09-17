@@ -22,55 +22,68 @@ class TranslatableModel(models.Model):
 
 class translatable_property(object):
     """
-    This works similar to the property built-in by creating a getter for a
-    attribute on a model, except that it returns the value from an attr on
-    a related model that is fetched based on the current language.
+    This works by creating an property on your model that will proxy get, set
+    and delete methods to the related translation objects (extending from the
+    TranslatableModel class) that match the current language. If an instance
+    of a translatable model does not exist for the current language it will
+    fall back to the DEFAULT_LANGUAGE, as defined in your settings, for get
+    operations only.
     """
 
     def __init__(self, name, related):
         """
         When creating a translatable_property you need to pass the name of the
-        related attribute as well as the name of the related manage on the
-        object you're attaching this to.
+        related attribute as well as the name of the related manager on the
+        instance you're attaching this to.
         """
         self.name = name
         self.related = related
 
-    def __get__(self, obj, objtype):
+    def related_model(self, instance, use_default=False):
         """
-        Look up a translatable_property
+        Returns the related model for the specified instance
         """
-        # first fetch our related manager
-        related_manager = getattr(obj, self.related)
+        # fetch our related manager
+        related_manager = getattr(instance, self.related)
         if not related_manager:
             raise TranslatableException("Object (%s) doesn't have a \"%s\" property" % (
-                obj,
+                instance,
                 self.related))
 
-        def related_attr(lang):
-            """
-            Closure to make life easier, it returns the related attr based on
-            the provided language.
-            """
+        def _for_lang(lang):
             # use .all() here because if we have a prefetch_cache the value is there already
-            for e in related_manager.all():
-                if e.language == lang:
-                    try:
-                        return getattr(e, self.name)
-                    except IndexError:
-                        pass
+            for instance in related_manager.all():
+                if instance.language == lang:
+                    return instance
 
-        # first try by asking the translation module for the current language
-        # this works via the locale middleware and will return the preferred
-        # language from the current request if available, falling back to the
-        # default language otherwise.
-        # we slice just the first two characters so that both 'en-us' and
-        # 'en-ca' will return 'en'.
-        current_lang = translation.get_language()[0:2]
-        val = related_attr(current_lang)
-        if val:
-            return val
+        # first try the current language
+        instance = _for_lang(translation.get_language()[0:2])
+        if instance and hasattr(instance, self.name):
+            return instance
 
-        # otherwise fall back to our default language
-        return related_attr(settings.DEFAULT_LANGUAGE)
+        if use_default:
+            # fall back to the default language
+            instance = _for_lang(settings.DEFAULT_LANGUAGE)
+            if instance and hasattr(instance, self.name):
+                return instance
 
+    def __get__(self, instance, owner):
+        """
+        Look up a translatable attribute
+        """
+        related_model = self.related_model(instance, True)
+        if related_model:
+            return getattr(related_model, self.name)
+
+    def __set__(self, instance, value):
+        """
+        Set a translatable attribute
+        """
+        related_model = self.related_model(instance)
+        if related_model:
+            return setattr(related_model, self.name, value)
+
+    def __del__(self, instance):
+        related_model = self.related_model(instance)
+        if related_model:
+            return delattr(related_model, self.name)
